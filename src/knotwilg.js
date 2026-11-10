@@ -38,19 +38,22 @@ export const KNOTWILG_MISSION_OF = { snoeier: 'knotwilg' };
 
 export const knotwilgHandlers = {
   async snoeier(npc, N, ui, g) {
-    if (this.done.has('knotwilg')) {
-      await ui.dialog(N, [G('Kiek ins hoe sjoen ze d\'r bij stoon! Over twee jaar moeten ze weer, dan bel ik je.', 'Kijk eens hoe mooi ze erbij staan! Over twee jaar moeten ze weer, dan bel ik je.')]);
-      return;
-    }
-    const a = await ui.dialog(N, [
+    // al een keer gedaan? Dan mag het opnieuw (zoals bij de andere missies): de wilgen staan er dan weer ongeknot bij
+    const again = this.done.has('knotwilg');
+    const a = again ? await ui.dialog(N, [
+      G('Kiek ins hoe sjoen ze d\'r bij stoon! Over twee jaar moeten ze weer, dan bel ik je.', 'Kijk eens hoe mooi ze erbij staan! Over twee jaar moeten ze weer, dan bel ik je.'),
+      'Of wil je nu al oefenen? Dan doen we gewoon alsof het twee jaar later is en ze weer helemaal zijn uitgelopen.',
+    ], ['Geef die zaag maar', 'Laat ze maar zo']) : await ui.dialog(N, [
       G('Hoi! Die twee knotwilgen moeten nodig geknot worden. Kiek ins, het lijken wel bezems.', 'Hoi! Die twee knotwilgen moeten nodig geknot worden. Kijk eens, het lijken wel bezems.'),
       'Alle jonge takken eraf, vlak boven de knot. Niet in de knot zagen, dan gaat de boom kapot. En rustig zagen, anders klemt de zaag.',
       'Ik heb maar één zaag en mijn arm is al lam. Help jij even?',
     ], ['Geef die zaag maar', 'Ik ben geen hovenier']);
-    if (a !== 0) { await ui.dialog(N, ['Dan wordt het weer een weekendje zagen voor mij. Nou ja, het houdt me van de bank.']); return; }
+    if (a !== 0) { await ui.dialog(N, [again ? 'Groot gelijk. Ze staan er net zo mooi bij.' : 'Dan wordt het weer een weekendje zagen voor mij. Nou ja, het houdt me van de bank.']); return; }
     if (g.mode === 'car') g.exitCar();
     g.setMode('walk');
     this.setActive('knotwilg', 'Knotwilgen knotten', 'Zaag alle jonge takken van de twee knotwilgen. Kies eerst waar je zaagt (net boven de knot), zaag dan in een rustig ritme.', '0 / 12 takken');
+    // opnieuw doen: de kruinen staan er weer, en als je stopt of het mislukt zijn de wilgen weer geknot zoals ze waren
+    if (again) { g.tuin38?.unprune(); this.active.cleanup = () => g.tuin38?.prune(); }
     const r = await startKnotten(g, { perTree: 6, trees: 2, limit: 110, maxKnot: 3 });
     if (!r || this.active?.id !== 'knotwilg') return;
     if (r.ok) {

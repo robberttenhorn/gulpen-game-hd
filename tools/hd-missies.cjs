@@ -2,6 +2,7 @@
 // begint (minispel, race, binnenruimte, bezorging), wat willekeurige invoer geven en dan 'Stoppen'.
 // Controleert dat er geen fouten in de console komen en dat je daarna weer vrij kunt rondlopen.
 // Gebruik: npm run build && npx vite preview --port 4173 &   en dan   node tools/hd-missies.cjs [filter]
+//   KLAAR=1: alle missies staan vooraf als gedaan (test of je ze opnieuw kunt doen).
 //   BEELD=1: per missie ook één echt beeld tekenen (vangt shaderfouten; traag zonder videokaart).
 // De weergave staat verder uit: zonder videokaart kost één beeld seconden, de spellogica loopt zo op volle snelheid.
 const { chromium } = require('playwright');
@@ -20,6 +21,16 @@ const BEELD = !!process.env.BEELD;
   page.on('pageerror', (e) => errors.push(`[${current}] pageerror: ${e.message}`));
   await page.goto(URL + (process.env.QUERY || ''));
   await page.waitForSelector('#start-btn:not([hidden])');
+  // KLAAR=1: alle missies vooraf als gedaan markeren (ook de finale), om te zien of je ze opnieuw kunt doen
+  if (process.env.KLAAR) {
+    await page.evaluate(() => {
+      const ids = game.missions.list().map((m) => m.id).concat(['finale']);
+      const key = Object.keys(localStorage).find((k) => k.endsWith('missies-v2')) || (location.pathname.includes('gulpen-game-hd') ? 'gulpehd-' : 'gulpe-') + 'missies-v2';
+      localStorage.setItem(key, JSON.stringify(ids));
+    });
+    await page.reload();
+    await page.waitForSelector('#start-btn:not([hidden])');
+  }
   await page.evaluate(() => {
     const g = window.game;
     g._render = g.render.bind(g);
