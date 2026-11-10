@@ -677,9 +677,13 @@ body.map-open #btn-home, body.map-open #home-confirm { display: none !important;
 #settings-panel .sp-head button { border: 0; border-radius: 999px; padding: 4px 12px; font: 600 13px Inter, sans-serif; background: rgba(27, 36, 48, .1); color: var(--ink); cursor: pointer; }
 #settings-panel .sp-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(27, 36, 48, .1); font-weight: 600; }
 #settings-panel .sp-line[hidden] { display: none; }
+/* bevestigingsvraag: de vraag bovenaan, de knoppen eronder (past ook op een smalle telefoon) */
+#settings-panel .sp-ask { flex-direction: column; align-items: flex-start; gap: 8px; font-weight: 500; }
+#settings-panel .sp-ask .sp-yn { align-self: flex-end; }
 #settings-panel .sp-yn { display: flex; gap: 6px; }
 #settings-panel .sp-pill { border: 1px solid rgba(27, 36, 48, .25); border-radius: 999px; padding: 6px 14px; min-width: 58px; font: 600 13px Inter, sans-serif; background: transparent; color: var(--ink); cursor: pointer; touch-action: manipulation; white-space: nowrap; }
 #settings-panel .sp-pill.on { background: #e8a33c; border-color: #e8a33c; }
+#settings-panel .sp-pill.warn { background: #c0392b; border-color: #c0392b; color: #fff; }
 #settings-panel .sp-label { font-weight: 700; margin: 10px 0 6px; }
 #settings-panel .sp-row { display: flex; gap: 6px; }
 #settings-panel .sp-row button { flex: 1; border: 1px solid rgba(27, 36, 48, .25); border-radius: 999px; padding: 8px 0; font: 600 14px Inter, sans-serif; background: transparent; color: var(--ink); cursor: pointer; touch-action: manipulation; }

@@ -9,7 +9,7 @@ import { World } from './world.js';
 import { Input } from './input.js';
 import { UI, Minimap, BigMap } from './ui.js';
 import { makeCharacter, makeBike, makeSkateboard } from './character.js';
-import { Missions } from './missions.js';
+import { Missions, resetProgress } from './missions.js';
 import { Vehicles, VOLVO_GREY } from './vehicles.js';
 import { Facades } from './facades.js';
 import { buildStatues } from './beelden.js';
@@ -181,18 +181,22 @@ class Game {
     // en de beeldkwaliteit (de game laadt dan opnieuw in de gekozen stand).
     {
       const $ = (id) => document.getElementById(id);
-      const gb = $('btn-settings'), sp = $('settings-panel'), hc = $('set-home-confirm'), sb = $('set-sound');
+      const gb = $('btn-settings'), sp = $('settings-panel'), hc = $('set-home-confirm'), rc = $('set-reset-confirm'), sb = $('set-sound');
       for (const el of [gb, sp]) for (const ev of ['pointerdown', 'touchstart']) el.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
-      const close = () => { sp.hidden = true; hc.hidden = true; };
+      const close = () => { sp.hidden = true; hc.hidden = true; rc.hidden = true; };
       const click = (el, fn) => el.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
-      click(gb, () => { if (sp.hidden) { sp.hidden = false; hc.hidden = true; } else close(); });
+      click(gb, () => { if (sp.hidden) { sp.hidden = false; hc.hidden = true; rc.hidden = true; } else close(); });
       click($('settings-close'), close);
       const syncSound = () => { sb.textContent = this.sfx.muted ? 'Uit' : 'Aan'; sb.classList.toggle('on', !this.sfx.muted); sb.setAttribute('aria-label', this.sfx.muted ? 'Geluid aanzetten' : 'Geluid uitzetten'); };
       click(sb, () => { this.sfx.setMuted(!this.sfx.muted); syncSound(); });
       syncSound();
-      click($('set-home'), () => { hc.hidden = !hc.hidden; });
+      click($('set-home'), () => { hc.hidden = !hc.hidden; rc.hidden = true; });
       click($('set-home-yes'), () => { close(); this.goHome(); });
       click($('set-home-no'), () => { hc.hidden = true; });
+      // alle missies opnieuw: eerst bevestigen, dan de voortgang wissen en de game opnieuw laden
+      click($('set-reset'), () => { rc.hidden = !rc.hidden; hc.hidden = true; });
+      click($('set-reset-yes'), () => { resetProgress(); location.reload(); });
+      click($('set-reset-no'), () => { rc.hidden = true; });
       for (const b of sp.querySelectorAll('.sp-row button')) {
         b.classList.toggle('on', b.dataset.q === Q.name);
         click(b, () => { if (b.dataset.q !== Q.name) setQuality(b.dataset.q); else close(); });

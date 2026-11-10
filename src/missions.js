@@ -23,6 +23,12 @@ const SAVE_KEY = STORE + 'missies-v2';
 // van mijnwoordenboek.nl (door bezoekers samengesteld). Laat ze nakijken door een Gulpenaar.
 const G = (text, nl) => ({ text, nl });
 
+// Alle voortgang wissen: afgeronde missies en records. Daarna moet de game opnieuw laden, want veel in de wereld
+// hangt af van wat er gedaan is (het skateboard, de afgestelde fiets, de geknotte wilgen).
+export function resetProgress() {
+  try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(STORE + 'records'); } catch { /* negeren */ }
+}
+
 export class Missions {
   constructor(game) {
     this.g = game;

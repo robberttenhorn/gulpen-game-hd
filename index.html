@@ -58,10 +58,12 @@
       <div class="sp-head"><b>Instellingen</b><button id="settings-close" type="button" aria-label="Sluiten">Sluiten</button></div>
       <div class="sp-line"><span>Geluid</span><button id="set-sound" type="button" class="sp-pill">Aan</button></div>
       <div class="sp-line"><span>Terug naar het startpunt</span><button id="set-home" type="button" class="sp-pill">Ga terug</button></div>
-      <div class="sp-line" id="set-home-confirm" hidden><span>Zeker weten? Een lopende missie stopt.</span><span class="sp-yn"><button id="set-home-yes" type="button" class="sp-pill on">Ja</button><button id="set-home-no" type="button" class="sp-pill">Nee</button></span></div>
+      <div class="sp-line sp-ask" id="set-home-confirm" hidden><span>Zeker weten? Een lopende missie stopt.</span><span class="sp-yn"><button id="set-home-yes" type="button" class="sp-pill on">Ja</button><button id="set-home-no" type="button" class="sp-pill">Nee</button></span></div>
+      <div class="sp-line"><span>Alle missies opnieuw</span><button id="set-reset" type="button" class="sp-pill">Resetten</button></div>
+      <div class="sp-line sp-ask" id="set-reset-confirm" hidden><span>Weet je het zeker? Al je afgeronde missies en records worden gewist.</span><span class="sp-yn"><button id="set-reset-yes" type="button" class="sp-pill warn">Ja, wissen</button><button id="set-reset-no" type="button" class="sp-pill">Nee</button></span></div>
       <div class="sp-label">Beeldkwaliteit</div>
       <div class="sp-row"><button type="button" data-q="hoog">Hoog</button><button type="button" data-q="midden">Midden</button><button type="button" data-q="laag">Laag</button></div>
-      <div class="sp-note" id="settings-note">Kies je een andere stand, dan laadt de game opnieuw en begin je weer bij het startpunt. Afgeronde missies blijven bewaard; een missie waar je mee bezig bent stopt.</div>
+      <div class="sp-note" id="settings-note">Laag is aanbevolen op mobiel.</div>
     </div>
 
     <div id="speedo" hidden><span id="speed-value">0</span><small>km/u</small></div>
