@@ -20,45 +20,9 @@ export class Input {
     addEventListener('keyup', (e) => this.keys.delete(e.code));
     addEventListener('blur', () => this.keys.clear());
 
-    // Vrij rondkijken met de muis (computer): tijdens het rondlopen 'vangt' het spel de muis, zodat je alleen hoeft
-    // te bewegen om te kijken en te richten, zonder te klikken of te slepen. Zodra je de muis nodig hebt (gesprek,
-    // minispel, kaart, instellingen) laat het spel hem los; daarna pakt het hem vanzelf weer. Met Esc maak je de
-    // muis zelf vrij; een klik in het beeld vangt hem dan weer. Lukt het vangen niet, dan werkt slepen nog gewoon.
-    this.canLock = !this.isTouch && typeof canvas.requestPointerLock === 'function';
-    this.locked = false; this.lockWanted = false; this.userFreed = false;
-    const requestLock = () => {
-      this.lockTryAt = performance.now();
-      try { const pr = canvas.requestPointerLock(); pr?.catch?.(() => {}); } catch { /* niet toegestaan: slepen blijft werken */ }
-    };
-    this.setMouseLook = (want) => {
-      this.lockWanted = want;
-      if (!this.canLock) return;
-      if (!want && this.locked) { this.selfExit = true; document.exitPointerLock(); return; }
-      // vanzelf (opnieuw) vangen kan alleen vlak na een toets of klik; anders wacht het tot de volgende toets of klik
-      if (want && !this.locked && !this.userFreed && performance.now() - (this.lockTryAt || 0) > 800 && navigator.userActivation?.isActive) requestLock();
-    };
-    if (this.canLock) {
-      document.addEventListener('pointerlockchange', () => {
-        const now = document.pointerLockElement === canvas;
-        if (!now && this.locked && !this.selfExit) { this.userFreed = true; this.onMouseFreed?.(); } // met Esc vrijgemaakt
-        if (now && !this.locked) this.onMouseLocked?.();
-        this.locked = now; this.selfExit = false;
-        document.body.classList.toggle('mouse-look', now);
-      });
-      document.addEventListener('mousemove', (e) => {
-        if (!this.locked) return;
-        // rustiger dan slepen: een handbeweging over het bureau is groter dan een sleepje over het scherm
-        this.lookDelta.x += (e.movementX || 0) * 0.45;
-        this.lookDelta.y += (e.movementY || 0) * 0.45;
-      });
-      addEventListener('keydown', () => { if (this.lockWanted && !this.locked && !this.userFreed && performance.now() - (this.lockTryAt || 0) > 800) requestLock(); });
-    }
-
     // kijken met muis (slepen) of touch (rechterhelft)
     let dragId = null, lx = 0, ly = 0, lastMove = 0;
     canvas.addEventListener('pointerdown', (e) => {
-      // een klik in het beeld vangt de muis (weer), ook nadat je hem met Esc had vrijgemaakt
-      if (this.canLock && this.lockWanted && !this.locked && e.pointerType === 'mouse') { this.userFreed = false; requestLock(); }
       // een oude sleep die nooit netjes is losgelaten (bijv. doordat er een venster overheen kwam) niet laten blokkeren
       if (dragId !== null && performance.now() - lastMove < 400) return;
       // op touch alleen het joystickhoekje (linksonder) overslaan, de rest van het scherm kan slepen

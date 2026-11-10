@@ -525,6 +525,18 @@ export class World {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    // Water: het terrein heeft een raster van 4 meter en steekt daardoor hier en daar net boven het wateroppervlak
+    // uit (groene vlekken in de beek en de vijvers). Elk rasterpunt in of vlak bij water krijgt een merkje; de shader
+    // tekent het terrein daar op dezelfde plek, maar zet het voor de dieptetest een eind naar achteren. Het water
+    // wint daar dus altijd van de grond eronder, zonder dat de hoogte van het terrein (en waar je loopt) verandert.
+    const wet = new Float32Array(gw * gh);
+    for (let r = 0; r < gh; r++) for (let c = 0; c < gw; c++) {
+      const x = pos[(r * gw + c) * 3], z = pos[(r * gw + c) * 3 + 2];
+      let w = this.classAt(x, z) === 'water';
+      for (let k = 0; k < 16 && !w; k++) { const a = (k / 8) * Math.PI * 2, d = k < 8 ? 2.2 : 4.4; w = this.classAt(x + Math.sin(a) * d, z + Math.cos(a) * d) === 'water'; }
+      wet[r * gw + c] = w ? 1 : 0;
+    }
+    geo.setAttribute('aWater', new THREE.BufferAttribute(wet, 1));
     geo.setIndex(gridIndex(gw, gh));
     geo.computeVertexNormals();
     const mat = new THREE.MeshStandardMaterial({ map: this.groundTexture, roughness: 0.95, metalness: 0 });
@@ -532,8 +544,14 @@ export class World {
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, ortho);
       shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nvarying vec2 vWorld;')
-        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWorld = position.xz;');
+        .replace('#include <common>', '#include <common>\nvarying vec2 vWorld;\nattribute float aWater;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWorld = position.xz;')
+        .replace('#include <project_vertex>', `#include <project_vertex>
+          if (aWater > 0.0) {
+            // alleen de diepte opschuiven (9 meter verder weg langs de kijkrichting), niet de plek in beeld
+            float zv = mvPosition.z - 9.0 * aWater;
+            gl_Position.z = gl_Position.w * (projectionMatrix[2][2] * zv + projectionMatrix[3][2]) / (-zv);
+          }`);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', `#include <common>
           #define GRASS_SHADE ${Q.gras ? '0.8' : '1.0'}
