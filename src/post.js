@@ -12,11 +12,23 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 
 const VERT = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
 
+// De diepte wordt altijd per hele pixel van de dieptekaart uitgelezen (texelFetch), nooit 'ergens tussen twee
+// pixels in'. De occlusion draait op halve resolutie en kwam daardoor precies op de grens tussen twee pixels uit;
+// op sommige rijen en kolommen pakte de videokaart dan twee keer dezelfde pixel, wat donkere strepen gaf.
 const DEPTH_FNS = `
   uniform sampler2D tDepth;
   uniform vec2 uNearFar, uTan; // uTan = (tan(halve kijkhoek) * beeldverhouding, tan(halve kijkhoek))
-  float viewZ(vec2 uv){ float d = texture2D(tDepth, uv).r; return (uNearFar.x * uNearFar.y) / ((uNearFar.y - uNearFar.x) * d - uNearFar.y); }
-  vec3 viewPos(vec2 uv){ float z = viewZ(uv); return vec3((uv * 2.0 - 1.0) * uTan * -z, z); }
+  uniform vec2 uFull; // maat van de dieptekaart in pixels
+  ivec2 dTex(vec2 uv){ return clamp(ivec2(floor(uv * uFull)), ivec2(0), ivec2(uFull) - 1); }
+  float zOf(float d){ return (uNearFar.x * uNearFar.y) / ((uNearFar.y - uNearFar.x) * d - uNearFar.y); }
+  float depthAt(vec2 uv){ return texelFetch(tDepth, dTex(uv), 0).r; }
+  float viewZ(vec2 uv){ return zOf(depthAt(uv)); }
+  vec3 posAt(ivec2 c){
+    c = clamp(c, ivec2(0), ivec2(uFull) - 1);
+    float z = zOf(texelFetch(tDepth, c, 0).r);
+    return vec3(((vec2(c) + 0.5) / uFull * 2.0 - 1.0) * uTan * -z, z);
+  }
+  vec3 viewPos(vec2 uv){ return posAt(dTex(uv)); }
 `;
 
 // ambient occlusion (rood) en zonnestralen (groen), op halve resolutie
@@ -28,18 +40,21 @@ const AO_FRAG = `
   uniform vec3 uSunUV; // xy = plek van de zon op het scherm, z = sterkte (0 = zon niet in beeld)
   float ign(vec2 p){ return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
   void main(){
-    float d0 = texture2D(tDepth, vUv).r;
+    ivec2 c0 = dTex(vUv);
+    float d0 = texelFetch(tDepth, c0, 0).r;
     float n = ign(gl_FragCoord.xy);
     float ao = 1.0;
     if (uAoOn > 0.5 && d0 < 0.99999) {
-      vec3 P = viewPos(vUv);
+      vec3 P = posAt(c0);
       if (-P.z < 90.0) {
         // normaal uit de diepte: per as de buur met het kleinste diepteverschil (geen randen meenemen)
-        vec3 Pr = viewPos(vUv + vec2(uTexel.x, 0.0)), Pl = viewPos(vUv - vec2(uTexel.x, 0.0));
-        vec3 Pu = viewPos(vUv + vec2(0.0, uTexel.y)), Pd = viewPos(vUv - vec2(0.0, uTexel.y));
+        vec3 Pr = posAt(c0 + ivec2(1, 0)), Pl = posAt(c0 - ivec2(1, 0));
+        vec3 Pu = posAt(c0 + ivec2(0, 1)), Pd = posAt(c0 - ivec2(0, 1));
         vec3 dx = abs(Pr.z - P.z) < abs(P.z - Pl.z) ? Pr - P : P - Pl;
         vec3 dy = abs(Pu.z - P.z) < abs(P.z - Pd.z) ? Pu - P : P - Pd;
-        vec3 N = normalize(cross(dx, dy));
+        vec3 Nc = cross(dx, dy);
+        float nl = length(Nc);
+        vec3 N = nl > 1e-12 ? Nc / nl : vec3(0.0, 0.0, 1.0);
         float rUv = uRadius / (-P.z * uTan.y * 2.0); // straal als deel van de beeldhoogte
         rUv = min(rUv, 0.12);
         float occ = 0.0;
@@ -52,7 +67,7 @@ const AO_FRAG = `
           float nv = dot(N, v) * inversesqrt(d2 + 1e-5);
           occ += max(0.0, nv - 0.12) * clamp(1.0 - d2 / (uRadius * uRadius * 2.2), 0.0, 1.0);
         }
-        ao = 1.0 - clamp(occ / 10.0 * 3.0, 0.0, 1.0);
+        ao = nl > 1e-12 ? 1.0 - clamp(occ / 10.0 * 3.0, 0.0, 1.0) : 1.0;
         ao = mix(ao, 1.0, smoothstep(45.0, 90.0, -P.z));
       }
     }
@@ -64,7 +79,7 @@ const AO_FRAG = `
       for (int j = 0; j < 22; j++) {
         if (p.x > 0.0 && p.x < 1.0 && p.y > 0.0 && p.y < 1.0) {
           vec2 q = (p - uSunUV.xy) * vec2(uAspect, 1.0);
-          g += step(0.99999, texture2D(tDepth, p).r) * exp(-dot(q, q) * 9.0) * w;
+          g += step(0.99999, depthAt(p)) * exp(-dot(q, q) * 9.0) * w;
         }
         w *= 0.965;
         p += delta;
@@ -183,7 +198,7 @@ export class Post {
     this.rtA = new THREE.WebGLRenderTarget(size.x >> 1, size.y >> 1, half);
     this.rtB = new THREE.WebGLRenderTarget(size.x >> 1, size.y >> 1, half);
     this.rtComp = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, depthBuffer: false });
-    const dU = () => ({ tDepth: { value: depth }, uNearFar: { value: new THREE.Vector2(camera.near, camera.far) }, uTan: { value: new THREE.Vector2(1, 1) } });
+    const dU = () => ({ tDepth: { value: depth }, uNearFar: { value: new THREE.Vector2(camera.near, camera.far) }, uTan: { value: new THREE.Vector2(1, 1) }, uFull: { value: new THREE.Vector2(size.x, size.y) } });
     const mk = (frag, uniforms) => new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: frag, uniforms, depthTest: false, depthWrite: false, toneMapped: false });
     this.aoMat = mk(AO_FRAG, { ...dU(), uTexel: { value: new THREE.Vector2() }, uRadius: { value: 1.1 }, uAspect: { value: 1 }, uAoOn: { value: 1 }, uRaysOn: { value: 1 }, uSunUV: { value: new THREE.Vector3() } });
     this.blurMat = mk(BLUR_FRAG, { ...dU(), tIn: { value: null }, uDir: { value: new THREE.Vector2() } });
@@ -221,7 +236,7 @@ export class Post {
     this.time += dt;
     const s = r.getDrawingBufferSize(new THREE.Vector2());
     const tan = Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2);
-    for (const m of this.depthUniforms) { m.uniforms.uTan.value.set(tan * cam.aspect, tan); m.uniforms.uNearFar.value.set(cam.near, cam.far); }
+    for (const m of this.depthUniforms) { m.uniforms.uTan.value.set(tan * cam.aspect, tan); m.uniforms.uNearFar.value.set(cam.near, cam.far); m.uniforms.uFull.value.set(this.rtScene.width, this.rtScene.height); }
 
     r.setRenderTarget(this.rtScene);
     r.render(this.scene, cam);

@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Locals: Gulpen</title>
   <meta name="theme-color" content="#1b2a3a" />
+  <!-- wat je ziet als je de link deelt (WhatsApp, Facebook, iMessage...). Het beeld maak je opnieuw met tools/og-beeld.cjs.
+       Het adres van het beeld moet volledig zijn: het wijst naar de echte game. -->
+  <meta name="description" content="Loop, fiets of rij door het echte Gulpen. Speel missies voor de dorpsgenoten, van de Markt tot de Gulperberg. Gratis in je browser." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Locals: Gulpen" />
+  <meta property="og:title" content="Locals: Gulpen" />
+  <meta property="og:description" content="Loop, fiets of rij door het echte Gulpen. Speel missies voor de dorpsgenoten, van de Markt tot de Gulperberg. Gratis in je browser." />
+  <meta property="og:url" content="https://robberttenhorn.github.io/gulpen-game/" />
+  <meta property="og:image" content="https://robberttenhorn.github.io/gulpen-game/og.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Het logo van Locals: Gulpen boven een uitzicht over het dorp vanaf de Gulperberg" />
+  <meta property="og:locale" content="nl_NL" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/style.css" />
@@ -29,7 +43,7 @@
         <button id="start-btn" hidden>Speel</button>
       </div>
       <!-- besturing in één regel -->
-      <div class="keys k-desk"><span><kbd>WASD</kbd> lopen</span><span><kbd>E</kbd> praten</span><span><kbd>F</kbd> fiets</span><span><kbd>M</kbd> kaart</span></div>
+      <div class="keys k-desk"><span><kbd>WASD</kbd> lopen</span><span><kbd>Muis</kbd> kijken</span><span><kbd>E</kbd> praten</span><span><kbd>F</kbd> fiets</span><span><kbd>M</kbd> kaart</span></div>
       <div class="keys k-touch"><span>Joystick: lopen</span><span>Ronde knop: praten</span><span>Kaart: missies</span></div>
       <div id="quality-pick" hidden>
         <div class="qp-row"><span>Beeldkwaliteit</span><button type="button" data-q="hoog">Hoog</button><button type="button" data-q="midden">Midden</button><button type="button" data-q="laag">Laag</button></div>

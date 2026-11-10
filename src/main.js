@@ -203,6 +203,9 @@ class Game {
         click(b, () => { if (b.dataset.q !== Q.name) setQuality(b.dataset.q); else close(); });
       }
     }
+    // uitleg bij het vrij rondkijken: één keer als de muis gevangen wordt, en telkens als je hem zelf vrijmaakt
+    this.input.onMouseLocked = () => { if (!this._lookTold) { this._lookTold = true; this.ui.toast('Beweeg de muis om rond te kijken. Esc maakt de muis vrij.', 3800); } };
+    this.input.onMouseFreed = () => this.ui.toast('Muis vrij. Klik in het beeld om weer rond te kijken.', 2600);
     this.clock.getDelta();
     this.renderer.setAnimationLoop(() => this.tick());
 
@@ -1445,6 +1448,7 @@ class Game {
     const dt = Math.min(0.05, realDt);
     this.time += dt;
     this.input.update(dt);
+    this.input.setMouseLook(this.wantsMouseLook());
     if (this.bigmap.open) { this.render(); return; }
     if (this.mode === 'car') this.updateCar(dt);
     else this.updatePlayer(dt);
@@ -1474,6 +1478,16 @@ class Game {
     this.grass?.update(this.camera, this.time);
     this.updateDof();
     this.render(dt);
+  }
+
+  // Vrij rondkijken met de muis mag alleen als je vrij rondloopt, fietst of rijdt. In een gesprek, minispel,
+  // tussenfilmpje, op de kaart of in het instellingenmenu heb je de muis zelf nodig.
+  wantsMouseLook() {
+    if (!this.started || this.ui.dialogOpen || this.minigame || this.penalty || this.pov || this.fading || this.bigmap?.open) return false;
+    const c = document.body.classList;
+    if (c.contains('intro') || c.contains('cutscene') || c.contains('live')) return false;
+    if (!(this._sp ||= document.getElementById('settings-panel')).hidden) return false;
+    return !document.querySelector('.mini-overlay');
   }
 
   // Scherptediepte tijdens gesprekken: de achtergrond wordt zacht, zoals in een film. Niet in minispellen.

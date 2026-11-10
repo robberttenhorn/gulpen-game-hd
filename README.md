@@ -40,7 +40,7 @@ npm run dev
 Open daarna de link die Vite toont (meestal http://localhost:5173).
 
 **Besturing**
-- Computer: WASD of pijltjes om te bewegen, Shift om te rennen, muis slepen om te kijken, scrollen om te zoomen,
+- Computer: WASD of pijltjes om te bewegen, Shift om te rennen, muis bewegen om te kijken (het spel vangt de muis tijdens het rondlopen; Esc maakt hem vrij, een klik in het beeld vangt hem weer),
   E om te praten of in en uit te stappen, F voor fiets of skateboard, spatie als handrem, M voor de kaart.
 - Mobiel: joystick links, slepen op de rechterhelft om te kijken, knoppen rechtsonder. Tik op de minikaart voor de grote kaart.
 
