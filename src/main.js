@@ -135,6 +135,7 @@ class Game {
 
     const btn = document.getElementById('start-btn');
     btn.hidden = false;
+    document.getElementById('loading').classList.add('ready'); // laadbalk weg, op die plek staat nu de knop Speel
     // beeldkwaliteit kiezen: herlaadt de game in de gekozen stand
     const qb = document.getElementById('quality-pick');
     if (qb) {

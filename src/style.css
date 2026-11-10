@@ -698,3 +698,31 @@ body.pov #btn-settings { top: auto; right: auto; left: 12px; bottom: calc(64px +
 body.pov #settings-panel { top: auto; right: auto; left: 12px; bottom: calc(112px + env(safe-area-inset-bottom)); }
 /* met de grote kaart open: geen tandwiel (de kaart heeft zelf een sluitknop) */
 body.map-open #btn-settings, body.map-open #settings-panel { display: none !important; }
+
+/* ---------- laadscherm, rustiger: logo, laadbalk of Speel-knop, één regel besturing, beeldkwaliteit ---------- */
+.tagline { margin: 14px 0 22px; }
+.load-slot { min-height: 66px; display: grid; place-items: center; }
+.load-busy { width: 100%; max-width: 320px; }
+#loading.ready .load-busy { display: none; }
+#start-btn { margin-top: 0; }
+.keys { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; font-size: 13px; opacity: .85; }
+.keys.k-touch { display: none; }
+@media (pointer: coarse) { .keys.k-touch { display: flex; } .keys.k-desk { display: none; } }
+.keys kbd { display: inline-block; min-width: 22px; padding: 1px 6px; margin-right: 4px; border-radius: 6px; border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.1); font: 600 12px Inter, sans-serif; }
+#quality-pick { margin-top: 20px; display: block; }
+#quality-pick .qp-row { display: flex; gap: 6px; align-items: center; justify-content: center; font-size: 13px; }
+#quality-pick .qp-tip { margin-top: 6px; font-size: 12px; opacity: .6; }
+.sources { margin-top: 18px; font-size: 11px; opacity: .45; }
+@media (max-height: 560px) {
+  .tagline { margin: 6px 0 8px; }
+  .load-slot { min-height: 52px; }
+  .keys { margin-top: 10px; font-size: 12px; }
+  #quality-pick { margin-top: 10px; }
+  .sources { margin-top: 8px; }
+}
+/* instellingen: het paneel schuift als het niet op het scherm past; Meer info klapt open */
+#settings-panel { max-height: calc(100vh - 76px); max-height: calc(100dvh - 76px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+#settings-panel .sp-more { margin-top: 10px; border-top: 1px solid rgba(27, 36, 48, .1); padding-top: 8px; }
+#settings-panel .sp-more summary { cursor: pointer; font-weight: 700; padding: 4px 0; }
+#settings-panel .sp-more p { margin: 6px 0; font-size: 12px; line-height: 1.45; opacity: .8; }
+#settings-panel .sp-more ul { margin: 6px 0 0; padding-left: 16px; font-size: 12px; line-height: 1.5; opacity: .85; }

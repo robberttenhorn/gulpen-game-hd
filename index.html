@@ -20,18 +20,22 @@
         <span class="logo-place"><span id="logo-place">Gulpen</span></span>
       </h1>
       <div class="tagline">Van de Markt tot de Gulperberg</div>
-      <div class="intro">Loop, fiets of scheur door het echte Gulpen. Speel missies voor de dorpsgenoten, haal een frikandel super, proost met een pils op de Markt en ontdek wat er achter de gevels gebeurt.</div>
-      <div class="bar"><div id="loading-bar"></div></div>
-      <div id="loading-text">Gulpen wordt opgebouwd...</div>
-      <ol class="steps">
-        <li><b>Rondlopen:</b> <span class="k-desk">WASD of pijltjes, slepen om te kijken</span><span class="k-touch">joystick links, slepen om te kijken</span></li>
-        <li><b>Praten en instappen:</b> <span class="k-desk">E</span><span class="k-touch">de ronde knop rechtsonder</span></li>
-        <li><b>Alle missies zien:</b> tik op de <b>kaart rechtsboven</b><span class="k-desk"> (of druk op M)</span>, kies een missie en volg de lichtbundel</li>
-      </ol>
-      <button id="start-btn" hidden>Speel</button>
-      <div class="sources">Kaartdata: 3D BAG (TU Delft/3DGI, CC BY 4.0), luchtfoto Beeldmateriaal Nederland (CC BY 4.0), AHN, BGT, NWB en TOP10NL (PDOK). Bomen: ez-tree (MIT). Texturen en lucht: Poly Haven (CC0). Bewegingen: CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu).</div>
-      <div id="quality-pick" hidden><span>Beeldkwaliteit</span><button type="button" data-q="hoog">Hoog</button><button type="button" data-q="midden">Midden</button><button type="button" data-q="laag">Laag</button></div>
-      <div class="hint">F of de knop Fiets: wisselen tussen lopen, fiets en skateboard. Een missie kun je altijd stoppen.</div>
+      <!-- tijdens het laden: balk met wat er gebeurt; daarna komt op dezelfde plek de knop Speel -->
+      <div class="load-slot">
+        <div class="load-busy">
+          <div class="bar"><div id="loading-bar"></div></div>
+          <div id="loading-text">Gulpen wordt opgebouwd...</div>
+        </div>
+        <button id="start-btn" hidden>Speel</button>
+      </div>
+      <!-- besturing in één regel -->
+      <div class="keys k-desk"><span><kbd>WASD</kbd> lopen</span><span><kbd>E</kbd> praten</span><span><kbd>F</kbd> fiets</span><span><kbd>M</kbd> kaart</span></div>
+      <div class="keys k-touch"><span>Joystick: lopen</span><span>Ronde knop: praten</span><span>Kaart: missies</span></div>
+      <div id="quality-pick" hidden>
+        <div class="qp-row"><span>Beeldkwaliteit</span><button type="button" data-q="hoog">Hoog</button><button type="button" data-q="midden">Midden</button><button type="button" data-q="laag">Laag</button></div>
+        <div class="qp-tip">Laag is aanbevolen op mobiel.</div>
+      </div>
+      <div class="sources">Gebouwd met open data van 3D BAG en PDOK. Alle bronnen staan in het spel onder het tandwiel, bij Meer info.</div>
     </div>
   </div>
 
@@ -64,6 +68,19 @@
       <div class="sp-label">Beeldkwaliteit</div>
       <div class="sp-row"><button type="button" data-q="hoog">Hoog</button><button type="button" data-q="midden">Midden</button><button type="button" data-q="laag">Laag</button></div>
       <div class="sp-note" id="settings-note">Laag is aanbevolen op mobiel.</div>
+      <details class="sp-more">
+        <summary>Meer info</summary>
+        <p>Deze game speelt zich af in het echte Gulpen. Het dorp is opgebouwd uit open data; de personen en verhalen zijn verzonnen.</p>
+        <ul>
+          <li><b>Gebouwen:</b> 3D BAG (TU Delft / 3DGI), CC BY 4.0</li>
+          <li><b>Luchtfoto:</b> Beeldmateriaal Nederland, CC BY 4.0</li>
+          <li><b>Hoogte, wegen, water en groen:</b> AHN, BGT, NWB en TOP10NL via PDOK</li>
+          <li><b>Texturen en lucht:</b> Poly Haven, CC0</li>
+          <li><b>Bomen:</b> ez-tree van Daniel Greenheck, MIT</li>
+          <li><b>Bewegingen:</b> CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)</li>
+          <li><b>3D:</b> three.js, MIT</li>
+        </ul>
+      </details>
     </div>
 
     <div id="speedo" hidden><span id="speed-value">0</span><small>km/u</small></div>
