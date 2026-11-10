@@ -60,6 +60,33 @@ export class Vehicles {
       this.spot.castShadow = false;
       this.scene.add(this.spot, this.spot.target);
     }
+    // Schaduwvlek onder elke auto in de stand Laag. Daar is geen ambient occlusion en is de schaduwkaart te grof
+    // om het donker onder een auto te laten zien, waardoor auto's boven de weg leken te zweven. Een zachte donkere
+    // vlek op de grond (twee driehoeken per auto) zet ze weer op straat.
+    if (Q.laag) {
+      const c = document.createElement('canvas');
+      c.width = 64; c.height = 128;
+      const x = c.getContext('2d');
+      // alleen de zachte slagschaduw van een rechthoek tekenen (de rechthoek zelf valt buiten het beeld):
+      // dat werkt in elke browser, ook op oudere iPhones
+      x.shadowColor = '#000'; x.shadowBlur = 10; x.shadowOffsetX = 200;
+      x.fillStyle = '#000';
+      x.fillRect(10 - 200, 12, 44, 104); // donker tot aan de rand van de auto, daarbuiten een halve meter uitloop
+      const tex = new THREE.CanvasTexture(c);
+      this.shadowMat = new THREE.MeshBasicMaterial({ map: tex, color: 0x000000, transparent: true, opacity: 0.7, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -16 });
+      this.shadowGeos = {};
+    }
+  }
+
+  // vlak onder de auto voor de schaduwvlek: iets groter dan de auto, net boven het wegdek
+  shadowGeo(type) {
+    return (this.shadowGeos[type] ??= (() => {
+      const t = TYPES[type];
+      const g = new THREE.PlaneGeometry(t.W + 1.0, t.L + 1.0);
+      g.rotateX(-Math.PI / 2);
+      g.translate(0, 0.07, 0);
+      return g;
+    })());
   }
 
   // geometrie van een type op een detailniveau (0 = los en dichtbij, 1 = gebundeld dichtbij, 2 = ver weg / telefoon)
@@ -108,6 +135,7 @@ export class Vehicles {
     rig.beam.position.z = m.beam.z - 0.4;
     rig.beam.visible = false;
     g.add(rig.beam);
+    if (this.shadowMat) { const sh = new THREE.Mesh(this.shadowGeo(type), this.shadowMat); sh.renderOrder = 1; g.add(sh); }
     g.userData.rig = rig;
     return g;
   }
@@ -186,6 +214,7 @@ export class Vehicles {
         meshes[0].castShadow = meshes[1].castShadow = shadow;
         meshes[0].receiveShadow = meshes[1].receiveShadow = true;
         if (m.glass) meshes.push(new THREE.InstancedMesh(m.glass, this.mats.glass, n));
+        if (this.shadowMat) { const sh = new THREE.InstancedMesh(this.shadowGeo(type), this.shadowMat, n); sh.renderOrder = 1; meshes.push(sh); }
         meshes[0].setColorAt(0, _col.set(0xffffff));
         for (const im of meshes) { im.boundingSphere = sphere.clone(); im.count = 0; im.visible = false; this.scene.add(im); }
         return { lod, range, meshes, plate, n: 0 };

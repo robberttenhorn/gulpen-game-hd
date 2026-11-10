@@ -117,7 +117,7 @@ async function shot(page, v, hour, file) {
       for (const v of VIEWS) {
         if (KORT && !(v.kern && tname !== 'gouden-uur') && !(tname === 'gouden-uur' && v.name === 'markt')) continue;
         if (KORT && mobile && !(v.name === 'markt' || (v.name === 'rijksweg' && tname === 'dag'))) continue;
-        if (mobile && !['markt', 'rijksweg', 'tuin38', 'gulp'].includes(v.name)) continue;
+        if (mobile && !['markt', 'rijksweg', 'tuin38', 'gulp'].includes(v.name) && !(filter && filter.includes(v.name))) continue; // op de telefoon alleen de kernset, tenzij er om een standpunt gevraagd is
         if (tname === 'gouden-uur' && !['markt', 'gulperberg', 'woonwijk', 'gulp'].includes(v.name)) continue;
         if (tname === 'avond' && ['gulperberg', 'woonwijk', 'gras'].includes(v.name)) continue;
         const id = `${tag}-${tname}-${v.name}`;
