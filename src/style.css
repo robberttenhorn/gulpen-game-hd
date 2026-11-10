@@ -726,3 +726,27 @@ body.map-open #btn-settings, body.map-open #settings-panel { display: none !impo
 #settings-panel .sp-more summary { cursor: pointer; font-weight: 700; padding: 4px 0; }
 #settings-panel .sp-more p { margin: 6px 0; font-size: 12px; line-height: 1.45; opacity: .8; }
 #settings-panel .sp-more ul { margin: 6px 0 0; padding-left: 16px; font-size: 12px; line-height: 1.5; opacity: .85; }
+
+/* ---------- melding: de game als app op je beginscherm (install.js) ---------- */
+#install-tip {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 40;
+  display: flex; align-items: center; gap: 10px; width: max-content; max-width: min(440px, calc(100vw - 20px));
+  padding: 8px 8px 8px 10px; border-radius: 16px; background: rgba(255, 250, 240, 0.97); color: var(--ink); box-shadow: var(--shadow);
+  font-family: Inter, sans-serif; font-size: 13px; line-height: 1.35; pointer-events: auto;
+}
+#install-tip[hidden] { display: none; }
+#install-tip img { border-radius: 9px; flex: none; }
+#install-tip .it-body { display: flex; flex-direction: column; min-width: 0; }
+#install-tip .it-body b { font-family: 'Baloo 2', sans-serif; font-size: 15px; line-height: 1.2; }
+#install-tip .it-body span b { font-family: inherit; font-size: inherit; }
+#install-btn { flex: none; border: 0; border-radius: 999px; padding: 7px 14px; font: 600 13px Inter, sans-serif; background: var(--accent); color: var(--ink); cursor: pointer; }
+#install-close { flex: none; width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(27, 36, 48, .08); color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer; }
+/* telefoon staand: boven de joystick en de knoppen */
+@media (pointer: coarse) and (max-width: 640px) { #install-tip { bottom: calc(206px + env(safe-area-inset-bottom)); } }
+/* telefoon liggend: tussen de joystick en de knoppen */
+@media (pointer: coarse) and (min-width: 641px) { #install-tip { max-width: min(440px, calc(100vw - 420px)); } }
+/* op het laadscherm staat er onderin niets in de weg */
+body:has(#loading:not([hidden])) #install-tip { bottom: calc(14px + env(safe-area-inset-bottom)); max-width: min(440px, calc(100vw - 20px)); }
+/* niet tijdens een gesprek, minispel, tussenfilmpje of met de kaart open */
+body.dialog-open #install-tip, body.pov #install-tip, body.cutscene #install-tip, body.live #install-tip, body.map-open #install-tip, body.intro #install-tip { display: none; }
+body:has(.mini-overlay) #install-tip { display: none; }

@@ -5,6 +5,7 @@ import { Q, isMobile, setQuality } from './quality.js';
 import { SkyDome } from './sky.js';
 import { Post } from './post.js';
 import { buildGrass } from './grass.js';
+import { setupInstallTip } from './install.js';
 import { World } from './world.js';
 import { Input } from './input.js';
 import { UI, Minimap, BigMap } from './ui.js';
@@ -1984,6 +1985,7 @@ document.getElementById('scene').addEventListener('webglcontextlost', (e) => {
 addEventListener('error', (e) => statsError('js', `${e.message} ${(e.filename || '').split('/').pop()}:${e.lineno}`));
 addEventListener('unhandledrejection', (e) => statsError('promise', e.reason?.message || e.reason));
 
+setupInstallTip(); // melding: de game als app op je beginscherm (verschijnt na een paar seconden)
 const game = new Game();
 document.fonts.ready.then(() => game.init()).catch((e) => {
   console.error(e);

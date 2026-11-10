@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Locals: Gulpen</title>
   <meta name="theme-color" content="#1b2a3a" />
+  <!-- als app op het beginscherm: naam, icoon en schermvullend openen -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Locals: Gulpen" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <!-- wat je ziet als je de link deelt (WhatsApp, Facebook, iMessage...). Het beeld maak je opnieuw met tools/og-beeld.cjs.
        Het adres van het beeld moet volledig zijn: het wijst naar de echte game. -->
   <meta name="description" content="Loop, fiets of rij door het echte Gulpen. Speel missies voor de dorpsgenoten, van de Markt tot de Gulperberg. Gratis in je browser." />
@@ -132,6 +140,14 @@
       <button id="btn-vehicle" class="round-btn small" hidden>Fiets</button>
     </div>
 
+  </div>
+
+  <!-- melding: de game als app op je beginscherm zetten (src/install.js) -->
+  <div id="install-tip" hidden role="status">
+    <img src="/icon-192.png" alt="" width="36" height="36" />
+    <div class="it-body"><b>Speel als app</b><span id="install-text"></span></div>
+    <button id="install-btn" type="button" hidden>Installeren</button>
+    <button id="install-close" type="button" aria-label="Melding sluiten">&times;</button>
   </div>
 
   <script type="module" src="/src/main.js"></script>
