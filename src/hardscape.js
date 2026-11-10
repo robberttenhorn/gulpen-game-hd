@@ -423,6 +423,13 @@ function wetSurface(mat) {
         float wetH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float wetN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(wetH(i), wetH(i + vec2(1, 0)), f.x), mix(wetH(i + vec2(0, 1)), wetH(i + vec2(1, 1)), f.x), f.y); }
+        // drie lagen ruis, elke laag gedraaid en verschoven: grillige vormen zonder zichtbaar raster
+        float wetF(vec2 p){
+          const mat2 R = mat2(0.8, -0.6, 0.6, 0.8);
+          float s = wetN(p) * 0.52; p = R * p * 2.07 + 13.7;
+          s += wetN(p) * 0.3; p = R * p * 2.13 + 4.1;
+          return s + wetN(p) * 0.18;
+        }
         float wetPud = 0.0; float wetAmt = 0.0;`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
         // grote vlekken in het wegdek (slijtage, oude reparaties), zodat een lange straat geen egaal vlak is
@@ -430,14 +437,26 @@ function wetSurface(mat) {
         #ifdef LOCALS_LAMPS
           wetAmt = texelFetch(uGlobals, ivec2(0, 0), 0).y;
           if (wetAmt > 0.01) {
-            float pn = wetN(vAOxz * 0.21) * 0.6 + wetN(vAOxz * 0.83) * 0.4;
-            wetPud = smoothstep(0.57, 0.7, pn) * wetAmt;
-            roughnessFactor = mix(mix(roughnessFactor, 0.45, wetAmt * 0.6), 0.05, wetPud);
-            diffuseColor.rgb *= mix(1.0, 0.7, wetAmt) * mix(1.0, 0.72, wetPud);
+            // Plassen: kleine, grillige vormen (één tot een paar meter), geen grote strakke vlakken. De vorm wordt eerst
+            // vervormd, de waterrand volgt de korrel van het asfalt, en rond elke plas ligt een natte, donkere rand.
+            vec2 pq = vAOxz * 0.33;
+            pq += (vec2(wetN(pq * 0.9 + 31.7), wetN(pq * 0.9 + 77.3)) - 0.5) * 1.6;
+            float pd = wetF(pq) - 0.63 + (wetN(vAOxz * 9.0) - 0.5) * 0.03;
+            float wetRim = smoothstep(-0.11, 0.0, pd) * wetAmt;
+            wetPud = smoothstep(0.0, 0.04, pd) * wetAmt;
+            roughnessFactor = mix(mix(mix(roughnessFactor, 0.45, wetAmt * 0.6), 0.24, wetRim * 0.8), 0.05, wetPud);
+            diffuseColor.rgb *= mix(1.0, 0.7, wetAmt) * mix(1.0, 0.86, wetRim) * mix(1.0, 0.78, wetPud);
           }
         #endif`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         normal = normalize(mix(normal, nonPerturbedNormal, wetPud * 0.92));`)
+      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+        // In een straat spiegelt een plas vooral gevels en bomen (donker), niet de lichte lucht bij de horizon:
+        // hoe vlakker je over het water kijkt, hoe minder lucht erin spiegelt. Recht van boven zie je de lucht wel.
+        if (wetPud > 0.0) {
+          float wetRy = inverseTransformDirection(reflect(-geometryViewDir, geometryNormal), viewMatrix).y;
+          reflectedLight.indirectSpecular *= mix(1.0, mix(0.22, 0.9, smoothstep(0.12, 0.65, wetRy)), wetPud);
+        }`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         #ifdef LOCALS_LAMPS
           if (wetAmt > 0.01) {
@@ -448,19 +467,29 @@ function wetSurface(mat) {
               float camH = max(0.3, cameraPosition.y - wP.y);
               vec2 wQ = cameraPosition.xz + (wP.xz - cameraPosition.xz) * (camH + 5.85) / camH;
               vec4 wBox = texelFetch(uGlobals, ivec2(1, 0), 0);
-              vec2 wUV = (wQ - wBox.xy) / wBox.zw;
-              if (wUV.x > 0.0 && wUV.x < 1.0 && wUV.y > 0.0 && wUV.y < 1.0) {
-                ivec2 wTS = textureSize(uLampMap, 0);
-                ivec2 wTC = ivec2(wUV * vec2(wTS));
-                vec4 wL = texelFetch(uLampMap, wTC, 0);
-                if (wL.a > 0.0) {
-                  vec2 wCen = wBox.xy + (vec2(wTC) + 0.5) / vec2(wTS) * wBox.zw;
-                  vec3 wDir = normalize(vec3(wCen.x + wL.x, wL.z, wCen.y + wL.y) - wP);
-                  vec3 wR = reflect(normalize(wP - cameraPosition), vec3(0.0, 1.0, 0.0));
-                  float wS = pow(max(dot(wR, wDir), 0.0), mix(260.0, 1600.0, wetPud));
-                  totalEmissiveRadiance += vec3(1.0, 0.74, 0.46) * (wS * wL.a * wetG.x * (0.5 * wetAmt + 3.0 * wetPud));
+              ivec2 wTS = textureSize(uLampMap, 0);
+              wTS.x /= 2; // rechterhelft van de kaart: per vakje de dichtstbijzijnde lantaarn
+              vec3 wR = reflect(normalize(wP - cameraPosition), vec3(0.0, 1.0, 0.0));
+              // De lichtveeg van een lantaarn is lang: hij loopt meters door voor en achter de plek waar de lamp precies
+              // in de spiegel staat. Daarom wordt langs de kijkrichting op vijf plekken gekeken welke lantaarn daar het
+              // dichtst bij staat, en telt de lamp die het best in de spiegel staat. Ver voor of achter die plek dooft de
+              // veeg geleidelijk uit. (Met één plek brak de veeg af op de rand van een kaartvakje: harde, getrapte randen.)
+              vec2 wAlong = normalize(wR.xz + 1e-5);
+              float wPow = mix(380.0, 1600.0, wetPud), wBest = 0.0;
+              for (int wk = 0; wk < 5; wk++) {
+                vec2 wUV = (wQ + wAlong * (float(wk) - 2.0) * 10.0 - wBox.xy) / wBox.zw;
+                if (wUV.x > 0.0 && wUV.x < 1.0 && wUV.y > 0.0 && wUV.y < 1.0) {
+                  ivec2 wTC = ivec2(wUV * vec2(wTS));
+                  vec4 wL = texelFetch(uLampMap, wTC + ivec2(wTS.x, 0), 0);
+                  if (wL.a > 0.0) {
+                    vec2 wCen = wBox.xy + (vec2(wTC) + 0.5) / vec2(wTS) * wBox.zw;
+                    vec3 wLp = vec3(wCen.x + wL.x, wL.z, wCen.y + wL.y);
+                    float wFade = 1.0 - smoothstep(18.0, 26.0, abs(dot(wLp.xz - wQ, wAlong)));
+                    wBest = max(wBest, pow(max(dot(wR, normalize(wLp - wP)), 0.0), wPow) * wL.a * wFade);
+                  }
                 }
               }
+              totalEmissiveRadiance += vec3(1.0, 0.74, 0.46) * (wBest * wetG.x * (0.5 * wetAmt + 3.0 * wetPud));
             }
           }
         #endif`);

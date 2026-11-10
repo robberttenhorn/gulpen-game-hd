@@ -1881,7 +1881,9 @@ export class World {
     const b = this.coreBox, res = 2, R = 25;
     const W = Math.ceil((b.x1 - b.x0) / res), H = Math.ceil((b.z1 - b.z0) / res);
     const best = new Float32Array(W * H);
-    const data = new Uint16Array(W * H * 4);
+    // De kaart is twee keer zo breed: links per vakje de bron die daar het meeste licht geeft (voor het licht zelf),
+    // rechts per vakje de dichtstbijzijnde lantaarn (voor de spiegeling van lantaarns in de natte straat).
+    const data = new Uint16Array(W * 2 * H * 4);
     const hf = THREE.DataUtils.toHalfFloat;
     const src = [];
     for (const [x, z] of this.lampList || []) {
@@ -1906,10 +1908,26 @@ export class World {
         const i = r * W + c;
         if (val <= best[i]) continue;
         best[i] = val;
-        data[i * 4] = hf(x - cx); data[i * 4 + 1] = hf(z - cz); data[i * 4 + 2] = hf(y); data[i * 4 + 3] = hf(power);
+        const o = (r * W * 2 + c) * 4;
+        data[o] = hf(x - cx); data[o + 1] = hf(z - cz); data[o + 2] = hf(y); data[o + 3] = hf(power);
       }
     }
-    setLampMap(data, W, H, [b.x0, b.z0, W * res, H * res]);
+    // rechterhelft: de dichtstbijzijnde lantaarn binnen 34 m
+    const near = new Float32Array(W * H).fill(1e9), RN = 34;
+    for (let k = 0; k < (this.lampList || []).length; k++) {
+      const [x, z, y, power] = src[k];
+      const c0 = Math.max(0, Math.floor((x - RN - b.x0) / res)), c1 = Math.min(W - 1, Math.floor((x + RN - b.x0) / res));
+      const r0 = Math.max(0, Math.floor((z - RN - b.z0) / res)), r1 = Math.min(H - 1, Math.floor((z + RN - b.z0) / res));
+      for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) {
+        const cx = b.x0 + (c + 0.5) * res, cz = b.z0 + (r + 0.5) * res;
+        const d2 = (cx - x) ** 2 + (cz - z) ** 2, i = r * W + c;
+        if (d2 >= RN * RN || d2 >= near[i]) continue;
+        near[i] = d2;
+        const o = (r * W * 2 + W + c) * 4;
+        data[o] = hf(x - cx); data[o + 1] = hf(z - cz); data[o + 2] = hf(y); data[o + 3] = hf(power);
+      }
+    }
+    setLampMap(data, W * 2, H, [b.x0, b.z0, W * res, H * res]);
     console.info(`lantaarnlicht: ${src.length} lichtbronnen`);
   }
 

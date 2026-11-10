@@ -296,3 +296,15 @@ Melding: tijdens het rondlopen en rondkijken af en toe heel kort een zwart beeld
 - **Aanpassing** (`src/post.js`): bij het samenvoegen van het beeld wordt elke pixel begrensd (hoogstens 64) en krijgt een ongeldige pixel de kleur van zijn buren, vóórdat de gloed erbij komt. Het beeld overdag en 's avonds is daarbij niet zichtbaar veranderd.
 - **Ook nagekeken en niet de oorzaak**: het eerste beeld na een automatische wisseling van resolutie is gewoon goed (geen zwart). In 48 vaste standpunten en ruim 120 beelden lopen zaten geen ongeldige pixels.
 - **Niet gedekt**: in de stand Laag (telefoon) is er geen gloed, dus daar kan dit mechanisme geen zwart beeld geven. Komt de flits daar ook voor, dan heeft die een andere oorzaak.
+
+## Plassen en lantaarnlicht op de natte avondstraat
+
+Melding: 's avonds lagen er harde, afgekaderde spiegelende vlakken op de weg in plaats van natuurlijke plassen.
+
+In het avondbeeld van de Rijksweg waren drie dingen te zien, en alle drie zijn aangepast:
+
+- **Vorm van de plassen** (`src/hardscape.js`): het waren vlakken van vijf tot tien meter met een strakke omtrek, die op een raster lagen. Nu zijn het kleinere, grillige vormen van één tot een paar meter (drie lagen ruis, gedraaid en vervormd), met een waterrand die de korrel van het asfalt volgt en een natte, donkere rand eromheen.
+- **Spiegeling in de plassen**: ze spiegelden de lichte lucht bij de horizon en werden daardoor lichtblauw. In een straat staat daar bebouwing, dus hoe vlakker je over het water kijkt, hoe minder lucht er nu in spiegelt. De lantaarns spiegelen er nog wel in.
+- **Getrapte randen in het licht**: de lichtveeg van een lantaarn op de natte weg brak af op de rand van een vakje van de lichtkaart (2 m), wat getrapte donkere en lichte randen gaf, ook op de stoep. De lichtkaart heeft nu een tweede helft met per vakje de dichtstbijzijnde lantaarn; de veeg zoekt daarin op vijf plekken langs de kijkrichting en dooft geleidelijk uit. Het gewone lantaarnlicht wordt nu vloeiend gemengd tussen de vier omliggende vakjes (`src/lighting.js`, `src/world.js`).
+
+Gecontroleerd met de zeven avondbeelden op de computer (geen fouten in de console). De gemiddelde helderheid van de beelden is vrijwel gelijk gebleven (Rijksweg 101,7 naar 99,9 op rood; Markt 24,1 naar 24,0). Niet gemeten: het effect op de beeldsnelheid op een echte videokaart; de natte weg rekent 's avonds per pixel iets meer uit dan eerst.
