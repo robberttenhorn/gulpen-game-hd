@@ -228,7 +228,7 @@ export function startKnotten(g, { perTree = 6, trees = 2, limit = 120, maxKnot =
       }
     }
   };
-  ui.ov.addEventListener('pointerdown', (e) => { if (!e.target.closest('.mini-stop') && !e.target.closest('#btn-home')) act(); });
+  ui.ov.addEventListener('pointerdown', (e) => { if (!e.target.closest('.mini-stop') && !e.target.closest('#btn-settings, #settings-panel')) act(); });
   const onKey = (e) => { if (['ArrowLeft', 'ArrowRight', 'KeyA', 'KeyD'].includes(e.code)) { e.preventDefault(); act(); } };
   addEventListener('keydown', onKey);
   const pressed = () => { const p = g.input.consumeAction() || g.input.spacePressed; g.input.spacePressed = false; return p; };

@@ -108,7 +108,7 @@ Alle missies staan tegelijk open. Je kiest zelf de volgorde. Op de grote kaart z
 
 Bij de kroegentocht, de vlaaien en de slager ga je ook naar binnen: in een café, de bakkerij, de kerk en de slagerij.
 
-**Dag en nacht**: de tijd loopt niet vanzelf. Het wordt avond na de missie Pilsje bij De Zwarte Ruiter (en tijdens de finale). Het wordt weer dag zodra je een andere missie begint, als je een nachtmissie haalt, stopt of die mislukt, met nog een pilsje, en anders na 2 minuten zonder missie. Bij elke start van de game is het 11 uur 's ochtends. De avondmissies zijn de Nachtburgemeester, de Nacht van Gulpen en de Gulpener Bierfeesten.
+**Dag en nacht**: de tijd loopt niet vanzelf. Het wordt avond na de missie Pilsje bij De Zwarte Ruiter (en tijdens de finale). Het wordt weer dag zodra je een andere missie begint, als je een nachtmissie haalt, stopt of die mislukt, met nog een pilsje, en anders na 3 minuten zonder missie. Bij elke start van de game is het 11 uur 's ochtends. De avondmissies zijn de Nachtburgemeester, de Nacht van Gulpen en de Gulpener Bierfeesten.
 
 **Licht**: het spel begint midden op de middag (15 uur), met een lage, warme zon en lange schaduwen. De schaduwen worden opgevuld met koel licht van de echte lucht, langs de randen van poppetjes, bomen, auto's en gevels loopt een heldere rand (het sterkst als je tegen de zon in kijkt), en verderop wordt alles zachter door nevel die richting de zon warm kleurt (src/lighting.js). Kijk je richting de zon, dan zie je zonnestralen langs daken en bomen. Achter de etalages brandt ook overdag warm licht. 's Avonds branden de lantaarns langs alle straten, is de straat nat en spiegelen de lampen in de plassen.
 

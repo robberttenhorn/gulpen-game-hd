@@ -193,9 +193,6 @@ export function buildStatues(fac) {
   // BGT-punten (kunstobject/herdenkingsmonument): Rijksweg bij het busstation en de Deken Schneidersstraat
   put(paard, 250.6, -54.6, faceStreet(250.6, -54.6), 'Paard in brons');
   put(druppel, 85.5, 51.3, faceStreet(85.5, 51.3), 'Smeltkroes van de evolutie');
-  // Kapelaan Pendersplein: midden op het plein (benadering)
-  const kp = w.streetPath?.('Kapelaan Pendersplein');
-  if (kp?.length) { const cx = kp.reduce((s, p) => s + p[0], 0) / kp.length, cz = kp.reduce((s, p) => s + p[1], 0) / kp.length; put(jozef, cx, cz, faceStreet(cx, cz), 'Sint Jozef'); }
   // vrije plek voor een gevel: 'out' meter van de gevel af, zo dicht mogelijk bij het midden ervan
   const bad = new Set(['rijbaan', 'fietspad', 'parkeer', 'water']);
   const freeAt = (x, z, r) => {
@@ -215,6 +212,15 @@ export function buildStatues(fac) {
     }
     return null;
   };
+  // Sint Jozef: op het Kapelaan Pendersplein, recht voor Donny's Gezellerie, tussen het terras en de straat
+  // (het terras reikt tot ruim 4,5 m van de gevel). Lukt dat niet, dan midden op het plein zoals voorheen.
+  const dn = fac.frames.donnys;
+  const jz = before(dn, [6.5, 7, 6, 7.5, 8, 5.6], 1.0);
+  if (jz) put(jozef, jz[0], jz[1], Math.atan2(dn.nx, dn.nz), 'Sint Jozef');
+  else {
+    const kp = w.streetPath?.('Kapelaan Pendersplein');
+    if (kp?.length) { const cx = kp.reduce((t, q) => t + q[0], 0) / kp.length, cz = kp.reduce((t, q) => t + q[1], 0) / kp.length; put(jozef, cx, cz, faceStreet(cx, cz), 'Sint Jozef'); }
+  }
   // De Limburger: op de Markt, recht voor Herberg De Zwarte Ruiter (voorbij het terras)
   const zr = fac.frames.zwarteruiter;
   const pl = before(zr, [8.5, 9, 9.5, 10, 11], 1.1);

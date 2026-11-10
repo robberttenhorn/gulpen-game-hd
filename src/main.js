@@ -176,31 +176,28 @@ class Game {
       b.addEventListener('click', (e) => { e.stopPropagation(); askStop(); });
     });
     addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.bigmap.open) askStop(); });
-    // terug naar start: altijd zichtbaar en altijd te gebruiken, ook als er iets is vastgelopen
+    // Instellingen: één tandwiel dat altijd in beeld is en altijd werkt (ook in een minispel, gesprek of tussenfilmpje,
+    // en ook als er iets is vastgelopen). Daarachter: geluid aan of uit, terug naar het startpunt (na een bevestiging)
+    // en de beeldkwaliteit (de game laadt dan opnieuw in de gekozen stand).
     {
-      const hb = document.getElementById('btn-home'), hc = document.getElementById('home-confirm');
-      let hcTimer = null;
-      const hide = () => { hc.hidden = true; clearTimeout(hcTimer); };
-      for (const el of [hb, hc]) for (const ev of ['pointerdown', 'touchstart']) el.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
-      hb.addEventListener('click', (e) => { e.stopPropagation(); hc.hidden = !hc.hidden; clearTimeout(hcTimer); if (!hc.hidden) hcTimer = setTimeout(hide, 8000); });
-      document.getElementById('home-yes').addEventListener('click', (e) => { e.stopPropagation(); hide(); this.goHome(); });
-      document.getElementById('home-no').addEventListener('click', (e) => { e.stopPropagation(); hide(); });
-    }
-    // instellingen: beeldkwaliteit kiezen tijdens het spelen (de game laadt dan opnieuw in de gekozen stand)
-    {
-      const gb = document.getElementById('btn-settings'), sp = document.getElementById('settings-panel');
+      const $ = (id) => document.getElementById(id);
+      const gb = $('btn-settings'), sp = $('settings-panel'), hc = $('set-home-confirm'), sb = $('set-sound');
       for (const el of [gb, sp]) for (const ev of ['pointerdown', 'touchstart']) el.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
-      gb.addEventListener('click', (e) => { e.stopPropagation(); sp.hidden = !sp.hidden; });
-      document.getElementById('settings-close').addEventListener('click', (e) => { e.stopPropagation(); sp.hidden = true; });
+      const close = () => { sp.hidden = true; hc.hidden = true; };
+      const click = (el, fn) => el.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+      click(gb, () => { if (sp.hidden) { sp.hidden = false; hc.hidden = true; } else close(); });
+      click($('settings-close'), close);
+      const syncSound = () => { sb.textContent = this.sfx.muted ? 'Uit' : 'Aan'; sb.classList.toggle('on', !this.sfx.muted); sb.setAttribute('aria-label', this.sfx.muted ? 'Geluid aanzetten' : 'Geluid uitzetten'); };
+      click(sb, () => { this.sfx.setMuted(!this.sfx.muted); syncSound(); });
+      syncSound();
+      click($('set-home'), () => { hc.hidden = !hc.hidden; });
+      click($('set-home-yes'), () => { close(); this.goHome(); });
+      click($('set-home-no'), () => { hc.hidden = true; });
       for (const b of sp.querySelectorAll('.sp-row button')) {
         b.classList.toggle('on', b.dataset.q === Q.name);
-        b.addEventListener('click', (e) => { e.stopPropagation(); if (b.dataset.q !== Q.name) setQuality(b.dataset.q); else sp.hidden = true; });
+        click(b, () => { if (b.dataset.q !== Q.name) setQuality(b.dataset.q); else close(); });
       }
     }
-    const sb = document.getElementById('btn-sound');
-    const syncSound = () => { sb.classList.toggle('off', this.sfx.muted); sb.setAttribute('aria-label', this.sfx.muted ? 'Geluid aanzetten' : 'Geluid uitzetten'); };
-    sb.addEventListener('click', () => { this.sfx.setMuted(!this.sfx.muted); syncSound(); });
-    syncSound();
     this.clock.getDelta();
     this.renderer.setAnimationLoop(() => this.tick());
 
@@ -373,7 +370,7 @@ class Game {
   }
 
   // Nacht duurt niet eindeloos: het wordt weer dag als je een andere missie begint, als je een nachtmissie
-  // haalt, stopt of die mislukt, en anders na 2 minuten zonder missie. Nooit midden in een missie of gesprek.
+  // haalt, stopt of die mislukt, en anders na 3 minuten zonder missie. Nooit midden in een missie of gesprek.
   updateDayNight() {
     if (!(this.night > 0.5)) { this.nightSince = null; this.morningAsap = false; return; }
     const m = this.missions;
@@ -383,14 +380,14 @@ class Game {
       if (m.active?.id !== 'finale') {
         const todo = [['nacht', 'De Nachtburgemeester'], ['nachtvangulpen', 'Nacht van Gulpen'], ['bierfeesten', 'de Gulpener Bierfeesten']].filter(([id]) => !m.done.has(id)).map(([, t]) => t);
         setTimeout(() => this.ui.toast(todo.length
-          ? `Het is avond: tijd voor ${todo.length > 1 ? todo.slice(0, -1).join(', ') + ' en ' + todo[todo.length - 1] : todo[0]}. Over 2 minuten wordt het weer dag, of zodra je een andere missie begint.`
+          ? `Het is avond: tijd voor ${todo.length > 1 ? todo.slice(0, -1).join(', ') + ' en ' + todo[todo.length - 1] : todo[0]}. Over 3 minuten wordt het weer dag, of zodra je een andere missie begint.`
           : 'Het is avond. Even genieten van het donker, zo komt de zon weer op.', 5200), 600);
       }
     }
     if (m.active || this.ui.dialogOpen || this.interior || this.minigame || this.bigmap?.open) return;
     const elapsed = this.time - this.nightSince;
     const allDone = m.done.has('nacht') && m.done.has('nachtvangulpen') && m.done.has('bierfeesten');
-    if (this.morningAsap || elapsed > 120 || (allDone && elapsed > 25)) this.dawn();
+    if (this.morningAsap || elapsed > 180 || (allDone && elapsed > 38)) this.dawn(); // de avond duurt 3 minuten (was 2)
   }
 
   async dawn() {

@@ -50,23 +50,19 @@
 
     <div id="minimap-wrap" role="button" aria-label="Open de kaart"><canvas id="minimap" width="180" height="180"></canvas><span class="map-hint">Kaart</span></div>
 
-    <button id="btn-home" type="button" aria-label="Terug naar het startpunt" title="Terug naar het startpunt">
-      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 11.5 12 4l8.5 7.5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5v-5h3v5H18V10" fill="currentColor"/></svg>
-    </button>
-    <div id="home-confirm" hidden><span>Terug naar het startpunt?</span><button id="home-yes" type="button">Ja</button><button id="home-no" type="button">Nee</button></div>
-    <!-- instellingen: beeldkwaliteit kiezen, ook tijdens het spelen -->
+    <!-- instellingen: één tandwiel, altijd in beeld (behalve met de kaart open). Daarachter: geluid, terug naar het startpunt en de beeldkwaliteit -->
     <button id="btn-settings" type="button" aria-label="Instellingen" title="Instellingen">
       <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M10.3 2h3.4l.5 2.6c.6.2 1.2.5 1.7.8l2.3-1.4 2.4 2.4-1.4 2.3c.3.5.6 1.1.8 1.7l2.6.5v3.4l-2.6.5c-.2.6-.5 1.2-.8 1.7l1.4 2.3-2.4 2.4-2.3-1.4c-.5.3-1.1.6-1.7.8l-.5 2.6h-3.4l-.5-2.6c-.6-.2-1.2-.5-1.7-.8l-2.3 1.4-2.4-2.4 1.4-2.3c-.3-.5-.6-1.1-.8-1.7L1.4 13.7v-3.4l2.6-.5c.2-.6.5-1.2.8-1.7L3.4 5.8l2.4-2.4 2.3 1.4c.5-.3 1.1-.6 1.7-.8L10.3 2zM12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6z"/></svg>
     </button>
     <div id="settings-panel" hidden>
       <div class="sp-head"><b>Instellingen</b><button id="settings-close" type="button" aria-label="Sluiten">Sluiten</button></div>
+      <div class="sp-line"><span>Geluid</span><button id="set-sound" type="button" class="sp-pill">Aan</button></div>
+      <div class="sp-line"><span>Terug naar het startpunt</span><button id="set-home" type="button" class="sp-pill">Ga terug</button></div>
+      <div class="sp-line" id="set-home-confirm" hidden><span>Zeker weten? Een lopende missie stopt.</span><span class="sp-yn"><button id="set-home-yes" type="button" class="sp-pill on">Ja</button><button id="set-home-no" type="button" class="sp-pill">Nee</button></span></div>
       <div class="sp-label">Beeldkwaliteit</div>
       <div class="sp-row"><button type="button" data-q="hoog">Hoog</button><button type="button" data-q="midden">Midden</button><button type="button" data-q="laag">Laag</button></div>
       <div class="sp-note" id="settings-note">Kies je een andere stand, dan laadt de game opnieuw en begin je weer bij het startpunt. Afgeronde missies blijven bewaard; een missie waar je mee bezig bent stopt.</div>
     </div>
-    <button id="btn-sound" type="button" aria-label="Geluid uitzetten">
-      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path class="cross" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    </button>
 
     <div id="speedo" hidden><span id="speed-value">0</span><small>km/u</small></div>
 
