@@ -118,8 +118,26 @@ const COMP_FRAG = `
   uniform vec3 uSunColor;
   uniform float uAo, uRays, uDof, uFocus, uDofPx, uDebug;
   float cocAt(float z){ return clamp((abs(z - uFocus) - uFocus * 0.22) / (uFocus * 1.6), 0.0, 1.0); }
+  // Eén oneindig felle pixel (een schittering van de zon in lak, glas of water die buiten het bereik van het
+  // beeld valt) of één ongeldige pixel (een rekenfout in een shader) wordt door de gloed over een groot deel van
+  // het scherm uitgesmeerd, en de tone mapping maakt van 'oneindig' zwart: dat geeft één beeld lang een zwarte
+  // vlek. Daarom wordt elke pixel hier begrensd, en krijgt een ongeldige pixel de kleur van zijn buren.
+  const float MAXL = 64.0;
+  vec3 sceneAt(vec2 uv){
+    vec3 c = texture2D(tScene, uv).rgb;
+    if (any(isnan(c))) {
+      vec3 acc = vec3(0.0); float n = 0.0;
+      for (int i = 0; i < 4; i++) {
+        vec2 o = i == 0 ? vec2(1.0, 0.0) : i == 1 ? vec2(-1.0, 0.0) : i == 2 ? vec2(0.0, 1.0) : vec2(0.0, -1.0);
+        vec3 s = texture2D(tScene, uv + o * uTexel).rgb;
+        if (!any(isnan(s))) { acc += clamp(s, 0.0, MAXL); n += 1.0; }
+      }
+      c = n > 0.0 ? acc / n : vec3(0.0);
+    }
+    return clamp(c, 0.0, MAXL); // oneindig wordt hier de hoogste waarde: een felle schittering, geen zwart gat
+  }
   void main(){
-    vec3 col = texture2D(tScene, vUv).rgb;
+    vec3 col = sceneAt(vUv);
     if (uDof > 0.01) {
       float z0 = -viewZ(vUv);
       float c0 = cocAt(z0) * uDof;
@@ -132,7 +150,7 @@ const COMP_FRAG = `
         float cs = cocAt(zs) * uDof;
         if (zs > z0) cs = min(cs, c0 * 2.0); // wat erachter ligt mag niet over een scherpe voorgrond lekken
         float w = smoothstep(r - 0.12, r + 0.12, cs);
-        acc += texture2D(tScene, uv2).rgb * w; ws += w;
+        acc += sceneAt(uv2) * w; ws += w;
       }
       col = acc / ws;
     }
@@ -142,7 +160,7 @@ const COMP_FRAG = `
     col *= ao;
     col += uSunColor * ag.g * uRays;
     if (uDebug > 0.5) col = vec3(ag.r * 0.6) + vec3(ag.g * 3.0, 0.0, 0.0); // controlebeeld: occlusion (grijs) en zonnestralen (rood)
-    gl_FragColor = vec4(col, 1.0);
+    gl_FragColor = vec4(clamp(col, 0.0, MAXL), 1.0);
   }`;
 
 // filmische afwerking, als laatste stap naar het scherm

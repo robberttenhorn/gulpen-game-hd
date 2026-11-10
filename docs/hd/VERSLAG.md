@@ -286,3 +286,13 @@ Op verzoek, na het testen van de proefversie:
 - **Instellingen tijdens het spelen**: een tandwiel rechtsboven opent een klein paneel met de beeldkwaliteit (Hoog, Midden, Laag). Bij een andere keuze laadt de game opnieuw in die stand en begin je bij het startpunt; afgeronde missies blijven bewaard. Het tandwiel is er alleen tijdens vrij rondlopen, niet in minispellen of tussenfilmpjes.
 - **Telefoon**: begint standaard in de stand Laag (dat was al zo); wie zelf iets anders kiest, houdt die keuze.
 - De echte game (`gulpen-game`) is hierbij niet aangeraakt. De hoofdtak daar is niet verder gegaan sinds de kopie is gemaakt, dus de proefversie kan er zonder samenvoegwerk overheen.
+
+## Korte zwarte flits tijdens het lopen (standen Hoog en Midden)
+
+Melding: tijdens het rondlopen en rondkijken af en toe heel kort een zwart beeld, onregelmatig, grofweg elke 5 tot 20 seconden.
+
+- **Wat er gemeten is** (zonder videokaart, in Chromium met SwiftShader): als er één pixel in beeld staat die oneindig fel is, was in de oude versie één beeld lang 99,7% van het scherm zwart. De gloed (bloom) smeert die ene pixel uit over het hele beeld en de tone mapping maakt van "oneindig" zwart. Met de aanpassing blijft hetzelfde beeld gewoon (0,3% zwart, net als zonder die pixel).
+- **Waar zo'n pixel vandaan kan komen**: het beeld wordt opgebouwd met een beperkt helderheidsbereik (tot ongeveer 65.000). Een schittering van de zon in iets heel glads (autoruiten, autolak, water) kan daar volgens de formule van het materiaal boven komen als je er scherend langs kijkt. In de proeven kwam een gladde bol in de zon tot ruim 2.000 en een gewone wandeling tot 113; een echte overloop is in de proeven niet opgetreden. Dat dit de oorzaak is van de gemelde flits is dus aannemelijk, maar niet bewezen.
+- **Aanpassing** (`src/post.js`): bij het samenvoegen van het beeld wordt elke pixel begrensd (hoogstens 64) en krijgt een ongeldige pixel de kleur van zijn buren, vóórdat de gloed erbij komt. Het beeld overdag en 's avonds is daarbij niet zichtbaar veranderd.
+- **Ook nagekeken en niet de oorzaak**: het eerste beeld na een automatische wisseling van resolutie is gewoon goed (geen zwart). In 48 vaste standpunten en ruim 120 beelden lopen zaten geen ongeldige pixels.
+- **Niet gedekt**: in de stand Laag (telefoon) is er geen gloed, dus daar kan dit mechanisme geen zwart beeld geven. Komt de flits daar ook voor, dan heeft die een andere oorzaak.
